@@ -1,0 +1,52 @@
+import pandas as pd
+from dash import Dash, dcc, html, Input, Output
+import plotly.express as px
+
+# Load data
+df = pd.read_csv("Sales_cleaned_v2.csv")
+
+# Colors & style
+colors = {
+    "bg": "#18122B", "card": "#584D7E", 
+    "accent": "#9A639D", "text": "#9393A5"
+}
+
+app = Dash(__name__)
+app.layout = html.Div([
+    html.H1("Sales Dashboard", style={"color": colors["accent"], "textAlign": "center"}),
+    
+    dcc.Dropdown(
+        id="type-dd",
+        options=[{"label": t, "value": t} for t in sorted(df["Item_Type"].unique())],
+        multi=True, placeholder="All Types",
+        style={"backgroundColor": colors["bg"], "color": colors["text"], "width": "40%"}
+    ),
+    
+    html.Div(id="kpis", style={"display": "flex", "justifyContent": "space-around", "margin": 20}),
+    dcc.Graph(id="bar")
+], style={"backgroundColor": colors["bg"], "minHeight": "100vh", "padding": 30})
+
+@app.callback([Output("kpis","children"), Output("bar","figure")],
+              Input("type-dd","value"))
+def update(selected):
+    dff = df if not selected else df[df["Item_Type"].isin(selected)]
+    kpis = {
+        "Total Sales": dff["Item_Outlet_Sales"].sum(),
+        "Avg Sales": dff["Item_Outlet_Sales"].mean(),
+        "Max Sales": dff["Item_Outlet_Sales"].max(),
+        "Min Sales": dff["Item_Outlet_Sales"].min(),
+        "Unique Items": dff["Item_Identifier"].nunique()
+    }
+    cards = [html.Div([html.H4(k, style={"color": colors["accent"]}),
+                       html.H3(f"{v:,.0f}", style={"color": colors["text"]})],
+                      style={"background": colors["card"], "padding": 15, "borderRadius": 10, "width": "18%", "textAlign":"center"})
+             for k,v in kpis.items()]
+
+    fig = px.bar(dff.groupby("Item_Type")["Item_Outlet_Sales"].sum().reset_index(),
+                 x="Item_Type", y="Item_Outlet_Sales", color_discrete_sequence=[colors["accent"]],
+                 labels={"Item_Type":"Product Type","Item_Outlet_Sales":"Total Sales"})
+    fig.update_layout(bgcolor=colors["bg"], paper_bgcolor=colors["bg"], font_color=colors["text"], xaxis_tickangle=-45)
+    return cards, fig
+
+if __name__ == "__main__":
+    app.run(debug=True)
