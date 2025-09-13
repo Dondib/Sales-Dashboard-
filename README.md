@@ -8,3 +8,7 @@ This project was a great exercise in:
 Excited to keep pushing my Python + Data Visualization skills further!
  What do you think about the dashboard design? 💡
 hashtag#Python hashtag#DataAnalytics hashtag#DataVisualization hashtag#Plotly hashtag#Dash hashtag#Dashboard
+
+
+
+https://github.com/Dondib/Sales-Dashboard-/blob/main/newplot.png?raw=true
